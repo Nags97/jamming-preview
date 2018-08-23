@@ -1,0 +1,433 @@
+Conversation with Codecademy Pro
+Started on August 22, 2018 at 10:25 PM Eastern Time (US & Canada) time (GMT-05:00)
+
+---
+
+10:25 PM | Eric Nagle: so I'm working on implementing my capstone project so that I'll understand it. and I'm really struggling. Axel had suggested I try async await... and i looked over the info from the requests section... and am not following on how I would implement it for this project. I'm doing 30 sec previews of songs.
+
+10:25 PM | Eric Nagle: https://github.com/Nags97/jamming-preview
+
+10:27 PM | Eric Nagle: a little more information. the player loads in the tracklist and playlist fields. it just doesn't load anything. so in console, there are a bunch of promises that contain the urls to the previews. but they're not coming through.
+
+10:42 PM | Stephanie from Codecademy Pro: Hey welcome back
+
+10:42 PM | Eric Nagle: hi! thanks!
+
+10:46 PM | Stephanie from Codecademy Pro: So sorry for the delay
+
+10:46 PM | Eric Nagle: No problem. thanks
+
+10:46 PM | Stephanie from Codecademy Pro: So you're trying to use async await in all your requests?
+
+10:47 PM | Eric Nagle: I think i just my "getTrackPreview"
+
+10:47 PM | Eric Nagle: function
+
+10:50 PM | Eric Nagle: but like I said, in comparing the lesson to this -- I got REALLY confused on the implementation.
+
+10:51 PM | Stephanie from Codecademy Pro: Oh try:
+async getTrackPreview (trackId) {
+
+10:53 PM | Eric Nagle: okay. (i honestly backed up to where it worked again). do you want me to reupload that to my repo?
+
+10:53 PM | Stephanie from Codecademy Pro: Did that work?
+
+10:55 PM | Eric Nagle: No. I had gotten rid of a bunch of .then statements from before.
+
+10:55 PM | Eric Nagle: starting back from where it was working, I tried adding async before getTrackPreview. that didn't work either.
+
+10:55 PM | Eric Nagle: do I need an await phrase?
+
+10:55 PM | Stephanie from Codecademy Pro: No you shouldn't
+
+10:56 PM | Eric Nagle: async getTrackPreview (trackId) {
+ let accessToken = Spotify.getAccessToken();
+ let previewUrl;
+ const headers = {
+ Authorization: `Bearer ${accessToken}`
+ }; 
+ return fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {headers: headers}).then(response => {
+ if (response.ok) {
+ return response.json();
+ }
+ }).then(jsonResponse => {
+ previewUrl = jsonResponse.preview_url;
+ return previewUrl;
+ });
+},
+
+10:56 PM | Eric Nagle: that's what I went back to (w/ the async added) when it was working
+
+10:57 PM | Stephanie from Codecademy Pro: And that doesn't work?
+
+10:57 PM | Stephanie from Codecademy Pro: What happens?
+
+10:58 PM | Eric Nagle: Everything loads fine -- w/ the exception of no music preview.
+
+10:58 PM | Stephanie from Codecademy Pro: Oh, then the async is fine
+
+10:58 PM | Eric Nagle: so, i can see the audio player, but it doesn't do anything
+
+10:58 PM | Eric Nagle: sorry, I just meant it didn't solve the problem. ;)
+
+10:58 PM | Stephanie from Codecademy Pro: Can you do this right before previewUrl = jsonResponse...
+
+10:59 PM | Stephanie from Codecademy Pro: console.log(jsonResponse) 
+
+11:00 PM | Eric Nagle: [Image "Screen+Shot+2018-08-22+at+10.00.01+PM.png"]
+
+11:04 PM | Stephanie from Codecademy Pro: [Image "image.png"] This is your issue
+
+11:05 PM | Stephanie from Codecademy Pro: Here, you're setting previewUrl to a value that isn't ready yet, and so you return the value before it's ready
+
+11:05 PM | Stephanie from Codecademy Pro: You need to add a .then so that the getTrackPreview will resolve and then return the previewUrl value
+
+11:06 PM | Stephanie from Codecademy Pro: Like this: 
+ getPreviewUrl(trackId) {
+   return Spotify.getTrackPreview(trackId).then(previewUrl => previewUrl)
+}
+
+11:07 PM | Stephanie from Codecademy Pro: But depending on what calls your getPreviewUrl function, you should be able to do just this: 
+ getPreviewUrl(trackId) {
+   return Spotify.getTrackPreview(trackId)
+}
+
+11:09 PM | Eric Nagle: It's not crashing or anything, but still not playing previews. :(
+
+11:12 PM | Stephanie from Codecademy Pro: You've got to continue the trail
+
+11:12 PM | Stephanie from Codecademy Pro: What's calling your getPreviewUrl function?
+
+11:12 PM | Stephanie from Codecademy Pro: Because remember, it's still all waiting to get resolved so there's no value. 
+
+11:13 PM | Stephanie from Codecademy Pro: And the function is running before the value is resolved, so you need to make the function wait for the value to get resolved, which happens in then 
+
+11:13 PM | Eric Nagle: so my playPreview function
+
+11:13 PM | Stephanie from Codecademy Pro: Okay, what does that look like?
+
+11:13 PM | Eric Nagle: I'm guessing I'm making a similar mistake. haha
+
+11:13 PM | Eric Nagle: playPreview () {
+ let previewUrl = this.props.onPlay(this.props.track.id);
+ console.log(previewUrl);
+ if (previewUrl) {
+ return (
+ <audio controls>
+ <source src={previewUrl} type="audio/mp3" />
+ Your browser does not support the audio element.
+ </audio>
+ );
+ }
+ return;
+}
+
+11:14 PM | Stephanie from Codecademy Pro: Yep
+
+11:14 PM | Stephanie from Codecademy Pro: this.props.onPlay(this.props.track.id).then(previewUrl => {
+   ...do whatever here
+})
+
+11:19 PM | Eric Nagle: Okay, it's not got the promises in the console log anymore (it's just got the song info). but the audio element isn't coming up in the search anymore.
+
+11:20 PM | Stephanie from Codecademy Pro: Can I see your playPreview function?
+
+11:20 PM | Eric Nagle: playPreview () {
+ this.props.onPlay(this.props.track.id).then(previewUrl =>{
+ console.log(previewUrl);
+ return (
+ <audio controls>
+ <source src={previewUrl} type="audio/mp3" />
+ Your browser does not support the audio element.
+ </audio>
+ );
+ } 
+ )};
+
+11:20 PM | Stephanie from Codecademy Pro: Do you see how you're returning html in your then?
+
+11:20 PM | Stephanie from Codecademy Pro: Are you expecting that to go where the playPreview function is called?
+
+11:21 PM | Eric Nagle: yes
+
+11:21 PM | Stephanie from Codecademy Pro: Haha you need to return this.props.onPlay
+
+11:21 PM | Stephanie from Codecademy Pro: Also, btw this approach may not work
+
+11:21 PM | Stephanie from Codecademy Pro: You might need to use a setState
+
+11:23 PM | Eric Nagle: I think my mind is melting. HAHA!
+
+11:23 PM | Stephanie from Codecademy Pro: No worries
+
+11:23 PM | Stephanie from Codecademy Pro: Go ahead and add in a return for your this.props.onPlay and see if it works
+
+11:23 PM | Stephanie from Codecademy Pro: If it doesn't, then you're going to need a different approach
+
+11:25 PM | Eric Nagle: whoa. I got a very stern error: Objects are not valid as a React child (found: [object Promise]). If you meant to render a collection of children, use an array instead.
+ in div (at Track.js:50)
+ in Track (at TrackList.js:13)
+ in div (at TrackList.js:11)
+ in TrackList (at SearchResults.js:13)
+ in div (at SearchResults.js:11)
+ in SearchResults (at App.js:76)
+ in div (at App.js:75)
+ in div (at App.js:72)
+ in div (at App.js:70)
+ in App (at index.js:7)
+
+11:26 PM | Stephanie from Codecademy Pro: Yeah :/
+
+11:26 PM | Stephanie from Codecademy Pro: You're going to have to take another approach
+
+11:26 PM | Stephanie from Codecademy Pro: Do you want me to guide you through it or just tell you straight out?
+
+11:27 PM | Eric Nagle: would you be willing to just tell me? haha don't get me wrong, guiding is awesome. but I'm just trying to implement this for the capstone (if i'm going to do it, i'm going to do it right)
+
+11:29 PM | Stephanie from Codecademy Pro: Sure, I don't mind
+
+11:29 PM | Stephanie from Codecademy Pro: But I'd still stick with you if I were to guide you through it
+
+11:29 PM | Eric Nagle: sounds good!
+
+11:30 PM | Eric Nagle: honestly, it's getting late, and I've been in front of a computer for 14 ish hrs now.
+
+11:31 PM | Stephanie from Codecademy Pro: Okay: 
+ 1. In your render where you call the playPreview function, do this instead: 
+ {
+   this.state.previewUrl ?
+      <audio controls>
+         <source src={previewUrl} type="audio/mp3" />
+         Your browser does not support the audio element.
+      </audio>
+   : <div>loading preview</div>
+}
+
+11:33 PM | Stephanie from Codecademy Pro: 2. In your playPreview function revise it to this: 
+ playPreview () {
+   this.props.onPlay(this.props.track.id).then(previewUrl =>{
+      console.log(previewUrl);
+      this.setState({ previewUrl })
+   })
+}
+
+11:34 PM | Stephanie from Codecademy Pro: And then for your last step, you'll need a trigger to call the playPreview function
+
+11:34 PM | Stephanie from Codecademy Pro: So when do you want the playPreview to appear?
+
+11:35 PM | Eric Nagle: Before, I just had it loading w/ the songs.
+
+11:35 PM | Eric Nagle: [Image "Screen+Shot+2018-08-22+at+8.45.34+PM.png"]
+
+11:37 PM | Stephanie from Codecademy Pro: With the songs?
+
+11:37 PM | Stephanie from Codecademy Pro: if it's in the same component? 
+
+11:38 PM | Eric Nagle: sorry, I guess I don't follow
+
+11:38 PM | Eric Nagle: what I meant was when the songs populated, the audio player populated
+
+11:38 PM | Stephanie from Codecademy Pro: Oh like you can still have the previews load when the songs are populated
+
+11:38 PM | Stephanie from Codecademy Pro: So when the component loads?
+
+11:38 PM | Eric Nagle: yup
+
+11:39 PM | Eric Nagle: but obviously, that wasn't working. haha
+
+11:39 PM | Stephanie from Codecademy Pro: That's fine, then you can call the function in a lifecycle method, like componentDidMount
+
+11:39 PM | Stephanie from Codecademy Pro: Haha no worries, it can still work
+
+11:41 PM | Eric Nagle: so, it'd be 
+ componentDidMount(){playpreview()} ??
+
+11:42 PM | Stephanie from Codecademy Pro: Yep
+
+11:43 PM | Eric Nagle: does it matter where I put it? can it be after the playPreview function?
+
+11:43 PM | Stephanie from Codecademy Pro: Generally you should keep your lifecycle methods together
+
+11:43 PM | Stephanie from Codecademy Pro: so like right after the constructor
+
+11:44 PM | Stephanie from Codecademy Pro: It doesn't really matter as far as functionality, but that's generally how class components are organized
+
+11:45 PM | Eric Nagle: okay. so, that's giving me an error. saying that "Failed to compile
+./src/Components/Track/Track.js
+ Line 13: 'playPreview' is not defined no-undef
+ Line 51: 'previewUrl' is not defined no-undef 
+ Search for the keywords to learn more about each error.
+
+11:45 PM | Stephanie from Codecademy Pro: this.playPreview
+
+11:46 PM | Stephanie from Codecademy Pro: What's at line 51?
+
+11:46 PM | Eric Nagle: <source src={previewUrl} type="audio/mp3" />
+
+11:46 PM | Stephanie from Codecademy Pro: this.state.previewUrl
+
+11:47 PM | Eric Nagle: I feel like we're so close! LOL but alas... another error. :(
+
+11:47 PM | Eric Nagle: TypeError: Cannot read property 'previewUrl' of null
+Track.render
+src/Components/Track/Track.js:49
+ 46 | <h3>{this.props.track.name}</h3>
+ 47 | <p>{this.props.track.artist} | {this.props.track.album}</p>
+ 48 | </div>
+> 49 | {this.state.previewUrl ?
+ 50 | <audio controls>
+ 51 | <source src={this.state.previewUrl} type="audio/mp3" />
+ 52 | Your browser does not support the audio element.
+View compiled
+
+11:48 PM | Stephanie from Codecademy Pro: Did you define state in your constructor?
+
+11:48 PM | Stephanie from Codecademy Pro: this.state = { } 
+
+11:49 PM | Eric Nagle: I did now! :) AND YOU'RE AMAZING!!!!!
+
+11:49 PM | Eric Nagle: it works!!!!
+
+11:51 PM | Stephanie from Codecademy Pro: lol why are you surprised
+
+11:53 PM | Eric Nagle: I'm not! I'm just so glad it works! this was my second pass at trying to add a preview. I was so stuck on it that I started over and was ready to call it if I couldn't get it "done" tonight... and would have just done the capstone w/o it working.
+
+11:54 PM | Stephanie from Codecademy Pro: Haha nice :)
+
+11:54 PM | Stephanie from Codecademy Pro: Do you want an explanation on what we did?
+
+11:55 PM | Eric Nagle: I followed some of it. (not all, but some).
+
+11:55 PM | Stephanie from Codecademy Pro: Do you understand why the other approach didn't work?
+
+11:55 PM | Eric Nagle: if you want / have time for an explanation. that'd be awesome. Because that was the point of me taking this course.
+
+11:56 PM | Eric Nagle: honestly, i don't.
+
+11:58 PM | Stephanie from Codecademy Pro: Oh sure that's fine
+
+11:58 PM | Stephanie from Codecademy Pro: Okay, so basically it's all got to do with the asynchronous nature of javascript
+
+11:59 PM | Stephanie from Codecademy Pro: Basically when you make a fetch request, it usually takes many milliseconds, (anywhere between 25ms to a few hundred for the faster ones, and up to seconds for the really slow ones)
+
+12:00 AM | Stephanie from Codecademy Pro: However, your javascript code still runs in the background and it won't wait around for your request to complete
+
+12:00 AM | Stephanie from Codecademy Pro: So say I had this snippet of code: 
+ fetch(...);
+console.log('hello');
+
+12:01 AM | Stephanie from Codecademy Pro: Oh, one more thing that I forgot to mention that's important to know is that for just ordinary javascript code to run, a statement would take fractions of a millisecond (so like adding two numbers together -- VERY fast)
+
+12:01 AM | Stephanie from Codecademy Pro: So with this in mind, what do you expect to happen first? the fetch or the console.log?
+
+12:01 AM | Eric Nagle: console.log
+
+12:01 AM | Stephanie from Codecademy Pro: Bingo
+
+12:02 AM | Stephanie from Codecademy Pro: So let's extend the same concept and apply it to what you were trying to do:
+
+12:02 AM | Eric Nagle: I was trying to save the preview, before it was done being fetched?
+
+12:02 AM | Stephanie from Codecademy Pro: Bingo
+
+12:03 AM | Stephanie from Codecademy Pro: Well more specifically, you were trying to use the previewUrl value before it was fetched
+
+12:03 AM | Eric Nagle: can you see the light bulb over my head slowly coming on? ;)
+
+12:03 AM | Stephanie from Codecademy Pro: Heheheeh yis
+
+12:03 AM | Stephanie from Codecademy Pro: So more specifically, you had this: 
+ const previewUrl = fetch();
+// and then more code to actually use the previewUrl value
+
+12:04 AM | Stephanie from Codecademy Pro: So in this case, what do you think would happen first?
+
+12:04 AM | Eric Nagle: I was trying to use the value before it was fetched.
+
+12:04 AM | Eric Nagle: sorry, the other code was running, that is
+
+12:04 AM | Stephanie from Codecademy Pro: Yep, so the value would be undefined
+
+12:05 AM | Stephanie from Codecademy Pro: So you understand what .then does right?
+
+12:05 AM | Stephanie from Codecademy Pro: It will execute when the value has been fetched
+
+12:05 AM | Eric Nagle: I do now. haha
+
+12:06 AM | Stephanie from Codecademy Pro: :) Sorry, shift is ending so I'm just trying to pick up hte pace
+
+12:06 AM | Eric Nagle: no problem.
+
+12:06 AM | Stephanie from Codecademy Pro: But yes, it will execute the code when the value is fetched
+
+12:06 AM | Stephanie from Codecademy Pro: So then you might ask, why don't we just return the html inside the .then and return the fetch?
+
+12:07 AM | Stephanie from Codecademy Pro: Well, it's because the render function has to have something tangible to show
+
+12:07 AM | Stephanie from Codecademy Pro: when it gets run
+
+12:07 AM | Stephanie from Codecademy Pro: It won't wait on anything to be fetched
+
+12:09 AM | Stephanie from Codecademy Pro: So when you put that in the render, then you get the error
+
+12:10 AM | Eric Nagle: that makes total sense. (now)
+
+12:10 AM | Stephanie from Codecademy Pro: Okay, so now at this point, we need to figure out a different approach
+
+12:12 AM | Stephanie from Codecademy Pro: So here we rope in our state. We do this for 2 reasons: 
+ 1. We need a place to hold the value that we&#39;re waiting on 
+ 2. When the value has finished fetching, then we need to trigger a re-render to occur so that we can display the value that has finished fetching
+
+12:12 AM | Stephanie from Codecademy Pro: And we know that when we call this.setState then it triggers a rerender
+
+12:12 AM | Stephanie from Codecademy Pro: Follow me so far?
+
+12:12 AM | Eric Nagle: yup!
+
+12:13 AM | Stephanie from Codecademy Pro: Okay great. Do you understand what we did with the ternary?
+
+12:13 AM | Stephanie from Codecademy Pro: Inside the render?
+
+12:13 AM | Stephanie from Codecademy Pro: {
+   this.state.previewUrl ?
+      <audio controls>
+         <source src={previewUrl} type="audio/mp3" />
+         Your browser does not support the audio element.
+      </audio>
+   : <div>loading preview</div>
+}
+
+12:13 AM | Stephanie from Codecademy Pro: This part
+
+12:14 AM | Eric Nagle: it's checking if the previewurl is there... and then loading the audio element?
+
+12:15 AM | Stephanie from Codecademy Pro: Yep
+
+12:15 AM | Stephanie from Codecademy Pro: And we know that we will populate the previewUrl in the state when the value comes in
+
+12:15 AM | Stephanie from Codecademy Pro: *or like when the value has finished fetching
+
+12:15 AM | Stephanie from Codecademy Pro: So it's in the "loading" state when the url hasn't finished fetching (and thus is empty)
+
+12:16 AM | Stephanie from Codecademy Pro: So that segways into what we did in the playPreview function
+
+12:17 AM | Stephanie from Codecademy Pro: All we did was just call the function to fetch the previewUrl value, and when it resolves, then we can update state with the fetched value (and trigger a re-render, and then show the audio html with the value that was fetched)
+
+12:17 AM | Stephanie from Codecademy Pro: And that's pretty much all there is to it
+
+12:17 AM | Stephanie from Codecademy Pro: Any questions?
+
+12:17 AM | Eric Nagle: I don't think so.
+
+12:18 AM | Stephanie from Codecademy Pro: Sounds good, I'm going to head out. But we'll be back in 8hours if you have any questions come up.
+
+12:18 AM | Stephanie from Codecademy Pro: Goodnight!
+
+12:18 AM | Eric Nagle: THANK YOU AGAIN!!!!
+
+12:18 AM | Stephanie from Codecademy Pro: Was this interaction helpful? You can rate it here: https://www.codecademy.com/feedback/survey/5b7e35ac2ddfa3d6bc0002a0 Your rating helps us improve your learning experience.
+
+12:18 AM | Stephanie from Codecademy Pro: lol anytime :)
+
+---
+Exported from Codecademy Pro on August 23, 2018 at 12:20 AM Eastern Time (US & Canada) time (GMT-05:00)

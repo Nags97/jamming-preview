@@ -46,24 +46,28 @@ const Spotify = {
                 artist: track.artists[0].name,
                 album: track.album.name,
                 uri: track.uri,
+                cover: track.album.images[2].url
                 }));
         });
     },
 
-      getTrackPreview (trackId) = async() =>{
-      let accessToken = Spotify.getAccessToken();
-      let previewUrl;
-      const headers = {
-        Authorization: `Bearer ${accessToken}`
-      };
+    async getTrackPreview (trackId) {
+    let accessToken = Spotify.getAccessToken();
+    let previewUrl;
+    const headers = {
+      Authorization: `Bearer ${accessToken}`
+    };
 
-      try{ const response = await fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {headers: headers})}
+    return fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {headers: headers}).then(response => {
       if (response.ok) {
-        const jsonResponse = await response.json();
+        return response.json();
       }
+    }).then(jsonResponse => {
+      console.log(jsonResponse);
       previewUrl = jsonResponse.preview_url;
       return previewUrl;
-    },
+    });
+},
 
     savePlaylist(playlistName, trackURIs){
       if (!playlistName || !trackURIs.length) {

@@ -62,9 +62,8 @@ class App extends React.Component{
   }
 
   getPreviewUrl(trackId) {
-   const previewUrl = Spotify.getTrackPreview(trackId);
-   return previewUrl;
-}
+   return Spotify.getTrackPreview(trackId)
+  }
 
   render(){
     return(
